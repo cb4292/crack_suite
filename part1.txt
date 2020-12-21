@@ -1,0 +1,5 @@
+Part 1 Solution
+
+Solved password: adminpassword
+
+To break this hash, my program checks for the salt, then checks to identify the hash format (md5, SHA1, SHA256). It then attempts to run a wordlist attack using a passed in wordlist. For my attack, I used the Rockyou.txt file wordlist. The stolen hashes are passed in as a text file. With this wordlist, using the wordlist attack, it tries 136323.64916277953 hashes per second. Failing in the wordlist attack, it can attempt several brute-force attacks including number combinations and letter combinations.

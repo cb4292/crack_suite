@@ -3,6 +3,7 @@
 import sys
 import hashlib
 import itertools
+import time
 # Hashing helper Function
 
 
@@ -70,7 +71,9 @@ def brute_force(target_file):
         stringlength + 1
     print("All upper and lower case alphabet tested.\n")
 
-def hash(string, hashtype):
+def hash(string, hashtype, salt):
+    if salt:
+        string = salt+string
     string = bytes(string, encoding='utf8')
     if hashtype == "MD5":
         hashed = hashlib.md5(string).hexdigest()
@@ -102,19 +105,34 @@ def crack(hashed, unhashed):
 #   Crack function for non-generated words, args: dictionary, passwords, hash
 
 
-def crack2(wordlist, hash_type):
+def crack2(wordlist, hash_type=None):
     cracked_passwords = open("cracked_passwords.txt", "a")
     number_cracked = 0
     print("Number of hashes cracked:", number_cracked)
     with open(sys.argv[1], "r") as stolen_passwords_file:
         passwords = stolen_passwords_file.readlines()
+        start = time.perf_counter()
         for line in passwords:
             print("Current stolen hash to be tested: ", line.rstrip())
+            salt_password =  line.rstrip().split("$")
+            salt = None
+
+            if len(salt_password) == 2:
+                salt, line = salt_password
+
+            elif len(salt_password) == 1:
+                line = salt_password[0]
+            else:
+                print("Incorrect password format")
+                sys.exit(1)
+            hash_type = detect_hash_type(line)
             with open(wordlist, encoding = "ISO-8859-1") as attempts:
+                attempt_count = 0
                 for attempt in attempts:
+                    attempt_count +=1
                     attempt_string = attempt.rstrip()
                     try:
-                        hash_crack = hash(attempt_string, hash_type)
+                        hash_crack = hash(attempt_string, hash_type, salt)
                     except(UnicodeDecodeError):
                         print("Failed to hash password {}".format(attempt_string))
                     #print("Trying attempt password {}, hashed as {}, against hash value {}.".format(attempt_string, hash_crack, line.rstrip()))
@@ -125,8 +143,12 @@ def crack2(wordlist, hash_type):
                         cracked_passwords.write(hash_crack)
                         cracked_passwords.write("n")
                         print("Password cracked")
-                        continue
-    passwords.close()
+                        break
+
+    end = time.perf_counter()
+    attempts_per_second = attempt_count/(end-start)
+    print("Attempts per second is:", attempts_per_second)
+    stolen_passwords_file.close()
     attempts.close()
     cracked_passwords.close()
 # main Function
@@ -145,7 +167,7 @@ def crack2(wordlist, hash_type):
                     attempt_string = attempt.rstrip()
                     try:
                         hash_crack = hash(attempt_string, hash_type)
-                    except(UnicodeDecodeError):
+                    except UnicodeDecodeError:
                         print("Failed to hash password {}".format(attempt_string))
                     #print("Trying attempt password {}, hashed as {}, against hash value {}.".format(attempt_string, hash_crack, line.rstrip()))
                     if hash_crack == line.rstrip():
@@ -194,19 +216,11 @@ def better_dictionary_crack(wordlist, hash_type):
     #attempts.close()
     cracked_passwords.close()
 
-def main(argv):
-    password_hashes = open(sys.argv[1])
-    print("Running cracker on {} hash\n".format(str(sys.argv[1])))
-#   Determine hash type
-    hashlines = password_hashes.readlines()
-    hashSize = 0
-    num_hashes = 0
+def detect_hash_type(individual_hash):
+
     hash_type = ""
-    for x in hashlines:
-        # count max length of hashes
-        num_hashes += 1
-        hashSize = len(x)
-    password_hashes.close()
+    hashSize = len(individual_hash)
+
     print("Hash length is ", hashSize)
 #   Determine hashtype
     if (hashSize > 31) & (hashSize < 39):
@@ -220,15 +234,23 @@ def main(argv):
 
     else:
         print("Error, unrecognized hash.")
+    return hash_type
+
+def main(argv):
+    password_hashes = open(sys.argv[1])
+    print("Running cracker on {} hash\n".format(str(sys.argv[1])))
+#   Determine hash type
+
+
 #   Generate brute force combinations
-    print("Hashes to be cracked: ", num_hashes)
+    #print("Hashes to be cracked: ", num_hashes)
     print("Trying dictionary attack using rockyou.txt.\n")
-    better_dictionary_crack("rockyou.txt", hash_type)
+    #better_dictionary_crack("rockyou.txt", hash_type)
 # Try other dictionaries
 
 #   Try other dictionaries
     #print("Running crack on rockyou list:\n")
-    #crack2("rockyou.txt", hash_type)
+    crack2("rockyou.txt")
     print("Rockyou list test complete.\n")
 
 

@@ -1,0 +1,12 @@
+Running cracker on test_hash.txt hash
+
+Trying dictionary attack using rockyou.txt.
+
+Number of hashes cracked: 0
+Current stolen hash to be tested:  000000000000000000000000000078d2$18821d89de11ab18488fdc0a01f1ddf4d290e198b0f80cd4974fc031dc2615a3
+Hash length is  64
+Trying attempt password adminpassword, hashed as 18821d89de11ab18488fdc0a01f1ddf4d290e198b0f80cd4974fc031dc2615a3, against hash value 18821d89de11ab18488fdc0a01f1ddf4d290e198b0f80cd4974fc031dc2615a3.
+Password cracked
+Attempts per second is: 136323.64916277953
+Rockyou list test complete.
+
